@@ -155,6 +155,24 @@ module FriendlyId
   # You can change this with the {FriendlyId::Slugged::Configuration#sequence_separator
   # sequence_separator} configuration option.
   #
+  # #### Avoiding Numeric Slugs
+  #
+  # Purely numeric slugs like "123" can create ambiguity in Rails routing - they could
+  # be interpreted as either a friendly slug or a database ID. To prevent this, you can
+  # configure FriendlyId to treat numeric slugs as conflicts and add a UUID suffix:
+  #
+  #     class Product < ActiveRecord::Base
+  #       extend FriendlyId
+  #       friendly_id :sku, use: :slugged
+  #       friendly_id_config.treat_numeric_as_conflict = true
+  #     end
+  #
+  #     product = Product.create! sku: "123"
+  #     product.slug #=> "123-f9f3789a-daec-4156-af1d-fab81aa16ee5"
+  #
+  # This only affects purely numeric slugs. Alphanumeric slugs like "product-123"
+  # or "abc123" will work normally.
+  #
   # #### Providing Your Own Slug Processing Method
   #
   # You can override {FriendlyId::Slugged#normalize_friendly_id} in your model for
@@ -386,7 +404,7 @@ module FriendlyId
     # {FriendlyId::Configuration FriendlyId::Configuration}.
     module Configuration
       attr_writer :slug_column, :slug_limit, :sequence_separator
-      attr_accessor :slug_generator_class
+      attr_accessor :slug_generator_class, :treat_numeric_as_conflict
 
       # Makes FriendlyId use the slug column for querying.
       # @return String The slug column.
